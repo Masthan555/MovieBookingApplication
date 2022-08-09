@@ -300,7 +300,7 @@ Sample response body :
 
 
 ---
-#### 7. Make payment
+#### 9. Make payment
 
 ```sh
 POST /mba/api/v1/payments
@@ -323,3 +323,6 @@ Sample response body :
     "__v": 0
 }
 ```
+
+Incase of having any issues/doubts in running the API's or understanding the code.
+Please feel free to contact me : masthan55591@gmail.com
