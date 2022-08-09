@@ -1,4 +1,4 @@
-Node JS API's for Movie Ticket Booking application, 
+Node JS API's for Movie Ticket Booking application
 
 # MBA_APP - Movie Booking Application Backend API's
 ## _Learning the development of RESTful APIs for backend development_ 
@@ -324,5 +324,5 @@ Sample response body :
 }
 ```
 
-Incase of having any issues/doubts in running the API's or understanding the code.
-Please feel free to contact me : masthan55591@gmail.com
+##### Incase of having any issues/doubts in running the API's or understanding the code.
+##### Please feel free to contact me : masthan55591@gmail.com
