@@ -6,7 +6,7 @@ Node JS API's for Movie Ticket Booking application
 This code base contains logic/structure for creating the Restful APIs for the MBA_APP app, Using which theatre owners can add theatres and can also have to add/remove/update movies in their theatres, Endusers can see what are all the theatres and what movies are playing in them and can also book tickets if wanted,  and finally based on booking we do the payment in a direct way not used any payment API and will trigger an email with payment ID and payment Invoice.
 ## Features
 * Setting up project structure and database
-* Setting up data models for resources such as, theatre, booking, movie, user and payment
+* Setting up data models for resources such as for theatre, booking, movie, user and payment
 * API for CRUD operation on above resources
 * Ability to create, read, update based on authorization provided.
 
