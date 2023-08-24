@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Bookings</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Add custom CSS styling here */
+        body {
+            background-image: url('https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-movie-ticket-cinema-poster-design-image_189806.jpg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+        }
+        body.container {
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .navbar {
+            background-color: #486076;
+            padding: 10px;
+        }
+
+        .navbar .navbar-brand {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-link {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-item {
+            margin-right: 15px;
+        }
+
+        .navbar .nav-link:hover {
+            color: #000;
+        }
+
+        .navbar .nav-link.active {
+            color: #e74c3c;
+        }
+        .table th {
+            text-align: center;
+        } 
+        .table td {
+            text-align: center;
+        } 
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Movie Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./initiateBooking">Book movie tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./myBookings">My Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./theatres">Available Theatres</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signup">Create Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signin">Signin to account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="signoutLink">Signout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <script>
+        document.getElementById("signoutLink").addEventListener("click", function () {
+            // Clear CSRF token from localStorage
+            window.localStorage.setItem("CSRF", "");
+
+            // Redirect to the sign-in page
+            window.location.href = "./signin";
+        });
+    </script>
+
+    <div class="container">
+        <h2>My Bookings</h2>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Transaction Id</th>
+                    <th scope="col">Theatre Name</th>
+                    <th scope="col">Movie Name</th>
+                    <th scope="col">Show Time</th>
+                    <th scope="col">Total Seats</th>
+                    <th scope="col">Payment Status</th>
+                    <th scope="col">Total Cost</th>
+                </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+                <!-- Bookings will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Include Bootstrap JS (optional if you don't need any JavaScript features from Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        if (!window.localStorage.CSRF) {
+            window.location.href = "./signin";
+        }
+
+        const bookingsTableBody = document.getElementById("bookingsTableBody");
+
+        function fetchTheatreName(theatreId) {
+            return fetch(`/mba/api/v1/theatres/${theatreId}`)
+                .then(response => response.json())
+                .then(data => data.name)
+                .catch(error => console.error("Error fetching theatre name:", error));
+        }
+
+        function fetchMovieName(movieId) {
+            return fetch(`/mba/api/v1/movies/${movieId}`)
+                .then(response => response.json())
+                .then(data => data.name)
+                .catch(error => console.error("Error fetching movie name:", error));
+        }
+
+        fetch("/mba/api/v1/bookings",{
+                headers: {
+                    'x-access-token': window.localStorage.CSRF
+                }
+            })
+            .then(response => response.json())
+            .then(bookings => {
+                bookings.forEach(async booking => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${booking._id}</td>
+                        <td>${await fetchTheatreName(booking.theatreId)}</td>
+                        <td>${await fetchMovieName(booking.movieId)}</td>
+                        <td>${booking.showTime}</td>
+                        <td>${booking.noOfSeats}</td>
+                        <td>${booking.status}</td>
+                        <td>${booking.totalCost}</td>
+                    `;
+                    bookingsTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error("Error fetching bookings:", error));
+    </script>
+</body>
+</html>

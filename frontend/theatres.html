@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Theatre and Movie Information</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Add custom CSS styling here */
+        body {
+            background-image: url('https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-movie-ticket-cinema-poster-design-image_189806.jpg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+        }
+        .container {
+            padding: 20px;
+            margin: 0 auto;
+        }
+        .theatre-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: stretch;
+        }
+        .theatre-card {
+            flex: calc(33.33% - 20px);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            opacity: 0.95;
+        }
+        .theatre-card:hover {
+            background-color: #f2f2f2;
+        }
+        .movie-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            justify-content: center;
+
+            align-items: center;
+        }
+        .movie-popup {
+            max-width: 1000px;
+            height: 80vh;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin: 10px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .navbar {
+            background-color: #486076;
+            padding: 10px;
+        }
+
+        .navbar .navbar-brand {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-link {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-item {
+            margin-right: 15px;
+        }
+
+        .navbar .nav-link:hover {
+            color: #000;
+        }
+
+        .navbar .nav-link.active {
+            color: #e74c3c;
+        }
+        .card-img-top {
+            width: 100%;
+            height: 20vw;
+            /* object-fit: ; */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Movie Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./initiateBooking">Book movie tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./myBookings">My Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./theatres">Available Theatres</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signup">Create Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signin">Signin to account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="signoutLink">Signout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <script>
+        document.getElementById("signoutLink").addEventListener("click", function () {
+            // Clear CSRF token from localStorage
+            window.localStorage.setItem("CSRF", "");
+
+            // Redirect to the sign-in page
+            window.location.href = "./signin";
+        });
+    </script>
+
+    <div class="container">
+        <h2>Theatre and Movie Information</h2>
+        <div class="theatre-cards" id="theatreList">
+            <!-- Theatre cards will be dynamically added here -->
+        </div>
+        <div class="movie-popup-overlay" id="moviePopupOverlay">
+            <div class="movie-popup" id="moviePopup">
+                <!-- Movie details will be displayed here -->
+                <span class="close-button" id="closeButton">&times;</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS (optional if you don't need any JavaScript features from Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        const theatreList = document.getElementById("theatreList");
+        const moviePopupOverlay = document.getElementById("moviePopupOverlay");
+        const moviePopup = document.getElementById("moviePopup");
+        const closeButton = document.getElementById("closeButton");
+
+        function fetchMovieDetails(movieId) {
+            return fetch(`/mba/api/v1/movies/${movieId}`)
+                .then(response => response.json())
+                .catch(error => console.error("Error fetching movie details:", error));
+        }
+
+        fetch("/mba/api/v1/theatres")
+            .then(response => response.json())
+            .then(theatres => {
+                theatres.forEach(theatre => {
+                    const theatreCard = document.createElement("div");
+                    theatreCard.classList.add("theatre-card");
+                    theatreCard.innerHTML = `
+                        <h4>${theatre.name}</h4>
+                        <p>City: ${theatre.city}</p>
+                        <p>Pincode: ${theatre.pinCode}</p>
+                        <p>Total Seats: ${theatre.totalSeats}</p>
+                        <p>Ticket Price: ${theatre.ticketPrice}</p>
+                    `;
+
+                    theatreCard.addEventListener("click", async () => {
+                        moviePopup.innerHTML = ""; // Clear previous content
+                        for (const movieId of theatre.movies) {
+                            const movieDetails = await fetchMovieDetails(movieId);
+                            const movieCard = document.createElement("div");
+                            movieCard.classList.add("theatre-card");
+                            movieCard.innerHTML = `
+                            <img alt="Card image cap" class="card-img-top embed-responsive-item" src="${movieDetails.posterUrls[0]}" />
+                                <h5>${movieDetails.name}</h5>
+                                <p>Language: ${movieDetails.language}</p>
+                                <p>Description: ${movieDetails.description}</p>
+                                <p>Release Date: ${movieDetails.releaseDate}</p>
+                            `;
+                            moviePopup.appendChild(movieCard);
+                        }
+                        moviePopupOverlay.style.display = "flex"; // Display the popup overlay
+                    });
+
+                    theatreList.appendChild(theatreCard);
+                });
+            })
+            .catch(error => console.error("Error fetching theatres:", error));
+
+        closeButton.addEventListener("click", () => {
+            moviePopupOverlay.style.display = "none"; // Close the popup overlay
+        });
+
+        window.addEventListener("click", (event) => {
+            if (event.target === moviePopupOverlay) {
+                moviePopupOverlay.style.display = "none"; // Close the popup overlay when clicked outside
+            }
+        });
+    </script>
+</body>
+</html>

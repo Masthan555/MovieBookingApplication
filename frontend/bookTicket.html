@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Ticket Booking</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Add custom CSS styling here */
+        body {
+            background-image: url('https://png.pngtree.com/thumb_back/fh260/back_our/20190621/ourmid/pngtree-movie-ticket-cinema-poster-design-image_189806.jpg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+        }
+        body.container {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        .form-container {
+            background-color: #fff;
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-control {
+            border: 2px solid #6b816e; /* Change the border thickness here */
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .navbar {
+            background-color: #486076;
+            padding: 10px;
+        }
+
+        .navbar {
+            background-color: #486076;
+            padding: 10px;
+        }
+
+        .navbar .navbar-brand {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-link {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar .nav-item {
+            margin-right: 15px;
+        }
+
+        .navbar .nav-link:hover {
+            color: #000;
+        }
+
+        .navbar .nav-link.active {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Movie Booking</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./initiateBooking">Book movie tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./myBookings">My Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./theatres">Available Theatres</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signup">Create Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./signin">Signin to account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="signoutLink">Signout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <script>
+        document.getElementById("signoutLink").addEventListener("click", function () {
+            // Clear CSRF token from localStorage
+            window.localStorage.setItem("CSRF", "");
+
+            // Redirect to the sign-in page
+            window.location.href = "./signin";
+        });
+    </script>
+
+    <div class="container mt-5">
+        <div class="form-container">
+            <h2>Movie Ticket Booking</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="city">City:</label>
+                    <input type="text" class="form-control" id="city" required>
+                </div>
+                <div class="form-group">
+                    <label for="theatre">Theatre:</label>
+                    <select class="form-control" id="theatre" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="movie">Movie:</label>
+                    <select class="form-control" id="movie" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="showDate">Date &amp; Time of Show:</label>
+                    <input type="datetime-local" class="form-control" id="showDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="totalSeats">Total Seats:</label>
+                    <input type="number" class="form-control" id="totalSeats" required min="1" value="2">
+                </div>
+                <button type="submit" class="btn btn-primary">Book Ticket</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS (optional if you don't need any JavaScript features from Bootstrap) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        if (!window.localStorage.CSRF) {
+            window.location.href = "./signin";
+        }
+        const cityInput = document.getElementById("city");
+        const theatreSelect = document.getElementById("theatre");
+        const movieSelect = document.getElementById("movie");
+        const bookingForm = document.getElementById("bookingForm");
+
+        function fetchTheatres(city) {
+            const addedTheatreValues = new Set(); // To track added theatre values
+            fetch(`./api/v1/theatres?city=${city}`)
+                .then(response => response.json())
+                .then(data => {
+                    theatreSelect.innerHTML = "";
+                    data.forEach(theatre => {
+                        if (!addedTheatreValues.has(theatre.name)) {
+                            addedTheatreValues.add(theatre.name);
+                            const option = document.createElement("option");
+                            option.value = theatre._id;
+                            option.innerText = theatre.name;
+                            theatreSelect.appendChild(option);
+                        }
+                    });
+                })
+                .catch(error => console.error("Error fetching theatres:", error));
+        }
+
+        function fetchMovies(theatreId) {
+            const addedMovieValues = new Set(); // To track added movie values
+            fetch(`./api/v1/theatres/${theatreId}/movies`, {
+                headers: {
+                    'x-access-token': window.localStorage.CSRF
+                }
+            }).then(response => response.json())
+            .then(data => {
+                movieSelect.innerHTML = "";
+                data.forEach(movie => {
+                    if (!addedMovieValues.has(movie.name)) {
+                        addedMovieValues.add(movie.name);
+                        const option = document.createElement("option");
+                        option.value = movie._id;
+                        option.innerText = movie.name;
+                        movieSelect.appendChild(option);
+                    }
+                });
+            })
+            .catch(error => console.error("Error fetching movies:", error));
+        }
+
+        bookingForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const cityInput = document.getElementById("city");
+            const showDateInput = document.getElementById("showDate");
+            const totalSeatsInput = document.getElementById("totalSeats");
+
+            const formData = {
+                // city: cityInput.value,
+                theatreId: theatreSelect.value,
+                movieId: movieSelect.value,
+                userId: window.localStorage.userId,
+                showTime: showDateInput.value,
+                noOfSeats: totalSeatsInput.value
+            };
+
+            fetch("/mba/api/v1/bookings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-access-token': window.localStorage.CSRF
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Booking successful!");
+                window.localStorage.bookingId = data._id;
+                window.localStorage.theatreName = theatreSelect.selectedOptions?.[0]?.innerText;
+                window.localStorage.movieName = movieSelect.selectedOptions?.[0]?.innerText;
+                window.localStorage.showTime = data.showTime;
+                window.localStorage.noOfSeats = data.noOfSeats;
+                window.localStorage.bookingStatus = data.status;
+                window.localStorage.totalCost = data.totalCost;
+                // Reset the form after successful booking
+                bookingForm.reset();
+                window.location.href = "./makePayment";
+            })
+            .catch(error => {
+                alert("Booking failed. Please try again.");
+                console.error("Error booking ticket:", error);
+            });
+        });
+
+        theatreSelect.addEventListener("change", function () {
+            const selectedTheatreId = theatreSelect.value;
+            fetchMovies(selectedTheatreId);
+        });
+
+        // Event listener for city input to trigger fetchTheatres
+        cityInput.addEventListener("input", function () {
+            fetchTheatres(cityInput.value);
+        });
+
+        // fetchTheatres(""); // Initialize with empty city
+
+    </script>
+</body>
+</html>

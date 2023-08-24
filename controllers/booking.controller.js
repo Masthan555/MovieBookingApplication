@@ -10,7 +10,7 @@ const calculateBookingCost = require("../utils/calculateBookingCost");
  exports.getAllBookings = async ( req, res) => {
  
      const user = await User.findOne({
-        _id: req.userId
+        userId: req.userId
     });
 
     let queryObj = {};

@@ -5,6 +5,7 @@ const authRoutes = require('./auth.routes')
 const userRoutes = require('./user.routes')
 const bookingRoutes = require('./booking.routes')
 const paymentRoutes = require('./payment.routes')
+const userScreensRoutes = require("./userScreens.routes");
 
 module.exports = (app)=>{
     movieRoutes(app);
@@ -13,4 +14,5 @@ module.exports = (app)=>{
     userRoutes(app);
     bookingRoutes(app);
     paymentRoutes(app);
+    userScreensRoutes(app);
 }
